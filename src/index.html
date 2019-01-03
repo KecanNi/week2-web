@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="./css/index.css">
+    <script src="./js/libs/flexiable.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <header class='header'>
+            <span class="current" data-type='1'>我的爱豆</span>
+            <span data-type='2'>所有爱豆</span>
+            <span data-type='3'>饭圈大咖</span>
+        </header>
+        <main class="main">
+            <div class="main-content">
+                <!-- <dl>
+                    <dt>
+                        <img src="./images/323726.jpg" alt="">
+                    </dt>
+                    <dd>tianmao</dd>
+                </dl> -->
+            </div>
+        </main>
+    </div>
+    <script src="./js/libs/jquery.min.js"></script>
+    <script src="./js/libs/bscroll.min.js"></script>
+    <script>
+        var bs = new BScroll('.main', function () {
+            scrollY: true;
+            click: true
+        })
+        $.ajax({
+            url: '/api/get/list?page=1&page_size&type=1',
+            dataType: 'json',
+            success: function (data) {
+                render(data.data)
+            }
+        })
+        $(".header").on('click', 'span', function () {
+            var type = this.getAttribute('data-type');
+            $.ajax({
+                url: '/api/get/list',
+                data: {
+                    page: 1,
+                    page_size: 10,
+                    type: type
+                },
+                dataType: 'json',
+                success: function (data) {
+                    console.log(data.data)
+                    render(data.data)
+                }
+            })
+        })
+        function render(data) {
+            data.forEach((file) => {
+                var str = '';
+                str = `
+                        <dl data-id=${file._id}>
+                            <dt>
+                                <img src="./images/${file.images}" alt="">
+                            </dt>
+                            <dd>${file.title}</dd>
+                        </dl> 
+                    `;
+                $(".main-content").append(str)
+            });
+        }
+    </script>
+</body>
+
+</html>
