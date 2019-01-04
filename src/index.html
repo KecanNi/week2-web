@@ -18,7 +18,7 @@
             <span data-type='3'>饭圈大咖</span>
         </header>
         <main class="main">
-            <div class="main-content">
+            <div class="main-content" up="上拉加载">
                 <!-- <dl>
                     <dt>
                         <img src="./images/323726.jpg" alt="">
@@ -31,40 +31,96 @@
     <script src="./js/libs/jquery.min.js"></script>
     <script src="./js/libs/bscroll.min.js"></script>
     <script>
-        var bs = new BScroll('.main', function () {
-            scrollY: true;
-            click: true
-        })
-        $.ajax({
-            url: '/api/get/list?page=1&page_size&type=1',
-            dataType: 'json',
-            success: function (data) {
-                render(data.data)
-            }
-        })
+
+
+        var page = 1,
+            type = 1,
+            page_size = 10,
+            total = 0;
+
+        //初始化
+        function init() {
+            loadData();
+            initScroll();
+        }
+        init()
+        //滚动
+        var _content = document.querySelector('.main-content');
+
+        function initScroll() {
+            var scroll = new BScroll('.main', {
+                probeType: 2,
+                click: true
+            })
+            scroll.on('scroll', function () {
+                if (this.y < this.maxScrollY - 45) {
+                    if (page < total) {
+                        _content.setAttribute('up', '释放加载更多')
+                    } else {
+                        _content.setAttribute('up', '没有最新数据')
+                    }
+                } else if (this.y < this.maxScrollY - 22) {
+                    if (page < total) {
+                        _content.setAttribute('up', '上拉加载')
+                    } else {
+                        _content.setAttribute('up', '没有最新数据')
+                    }
+
+                }
+            })
+            scroll.on('touchEnd', function () {
+                if (_content.getAttribute('up') === '释放加载更多') {
+                    if (page < total) {
+                        page++;
+                        loadData();
+                        _content.setAttribute('up', '上拉加载')
+                    } else {
+                        _content.setAttribute('up', '没有最新数据')
+                    }
+                }
+            })
+        }
+
+        // //点击切换 
         $(".header").on('click', 'span', function () {
-            var type = this.getAttribute('data-type');
+            $(this).addClass('current').siblings().removeClass('current');
+            type = this.getAttribute('data-type');
+            page = 1;
+            console.log('类型'+type,'页数'+page)
+            $(".main-content").empty();
+            _content.setAttribute('up', '上拉加载')
+            loadData()
+        })
+        //默认渲染
+        function loadData() {
+            console.log(type,page)
             $.ajax({
                 url: '/api/get/list',
                 data: {
-                    page: 1,
-                    page_size: 10,
-                    type: type
+                    page: page,
+                    page_size: page_size,
+                    type: type,
                 },
                 dataType: 'json',
                 success: function (data) {
-                    console.log(data.data)
-                    render(data.data)
+                    if (data.code === 1) {
+                        total = data.total;
+                        render(data)
+                    }
+
                 }
             })
-        })
+        }
+
+
+
         function render(data) {
-            data.forEach((file) => {
+            data.data.forEach((file) => {
                 var str = '';
                 str = `
                         <dl data-id=${file._id}>
                             <dt>
-                                <img src="./images/${file.images}" alt="">
+                                <img src="http://localhost:3000/images/${file.images}" alt="">
                             </dt>
                             <dd>${file.title}</dd>
                         </dl> 
